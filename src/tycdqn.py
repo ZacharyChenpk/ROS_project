@@ -10,13 +10,13 @@ class ReinforceAgent():
             self,
             n_actions,
             n_features,
-            learning_rate=0.001,
+            learning_rate=0.00025,
             reward_decay=0.99,
             e_greedy=0.95,
-            replace_target_iter=400,
-            memory_size=50000,
-            batch_size=32,
-            e_greedy_increment=None,
+            replace_target_iter=1000,
+            memory_size=1000000,
+            batch_size=64,
+            e_greedy_increment=0.01,
             output_graph=False,
     ):
         self.n_actions = n_actions
@@ -148,7 +148,7 @@ class ReinforceAgent():
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
         self.learn_step_counter += 1
 
-        if self.learn_step_counter % 1000 == 0:
+        if self.learn_step_counter % 10000 == 0:
             self.model_saver.save(self.sess, "model/bot", global_step=self.learn_step_counter)
 
     def plot_cost(self):

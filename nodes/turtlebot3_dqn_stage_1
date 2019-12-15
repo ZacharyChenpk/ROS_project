@@ -171,7 +171,7 @@ if __name__ == '__main__':
             #agent.appendMemory(state, action, reward, next_state, done)
             agent.store_transition(state, action, reward, next_state)
 
-            if len(agent.memory) >= 64:
+            if len(agent.memory) >= 640:
                 agent.learn()
 
             score += reward
