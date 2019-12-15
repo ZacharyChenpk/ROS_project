@@ -1,0 +1,5 @@
+<launch>
+	
+	<node pkg="proj_api" name="communicator" type="communicator"/>
+	
+</launch>
