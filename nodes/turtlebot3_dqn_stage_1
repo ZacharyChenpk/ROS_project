@@ -184,6 +184,9 @@ if __name__ == '__main__':
             #     with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
             #         json.dump(param_dictionary, outfile)
 
+            if (t+1) % 200 == 0:
+                agent.sess.run(agent.target_replace_op)
+
             if t >= 500:
                 rospy.loginfo("Time out!!")
                 goalbox = True
