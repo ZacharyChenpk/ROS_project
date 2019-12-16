@@ -98,23 +98,26 @@ class Env():
         for i in range(10):
             angle = -pi / 4 + heading + (pi / 8 * (i%5)) + pi / 2
             tr = 1 - 4 * math.fabs(0.5 - math.modf(0.25 + 0.5 * angle % (2 * math.pi) / math.pi)[0])
+            if i > 4:
+                tr = tr * -1
             yaw_reward.append(tr)
 
         distance_rate = 2 ** (current_distance / self.goal_distance)
-        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate)
+        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate)-0.5
+        #reward = 3 - distance_rate
 
         if done:
             if self.colliding == False:
                 self.colliding = True
                 rospy.loginfo("Collision!!")
-            reward = -2
+            reward = -10
             #self.pub_cmd_vel.publish(Twist())
         else:
             self.colliding = False
 
         if self.get_goalbox:
             rospy.loginfo("Goal!!")
-            reward = 200
+            reward = 750
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
             self.goal_distance = self.getGoalDistace()

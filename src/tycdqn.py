@@ -13,10 +13,10 @@ class ReinforceAgent():
             learning_rate=0.00025,
             reward_decay=0.99,
             e_greedy=0.95,
-            replace_target_iter=1000,
-            memory_size=1000000,
+            replace_target_iter=400,
+            memory_size=100000,
             batch_size=64,
-            e_greedy_increment=0.01,
+            e_greedy_increment=0.00001,
             output_graph=False,
     ):
         self.n_actions = n_actions
@@ -53,7 +53,7 @@ class ReinforceAgent():
 
         self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
-        self.model_saver = tf.train.Saver()
+        self.model_saver = tf.train.Saver(max_to_keep=3)
 
     def _build_net(self):
         # ------------------ all inputs ------------------------
@@ -148,8 +148,9 @@ class ReinforceAgent():
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
         self.learn_step_counter += 1
 
-        if self.learn_step_counter % 10000 == 0:
-            self.model_saver.save(self.sess, "model/bot", global_step=self.learn_step_counter)
+        if self.learn_step_counter % 1000 == 0:
+            print("model saved")
+            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model/tbot", global_step=self.learn_step_counter)
 
     def plot_cost(self):
         import matplotlib.pyplot as plt

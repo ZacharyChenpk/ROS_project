@@ -171,7 +171,7 @@ if __name__ == '__main__':
             #agent.appendMemory(state, action, reward, next_state, done)
             agent.store_transition(state, action, reward, next_state)
 
-            if len(agent.memory) >= 640:
+            if global_step >= 640:
                 agent.learn()
 
             score += reward
@@ -184,8 +184,8 @@ if __name__ == '__main__':
             #     with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
             #         json.dump(param_dictionary, outfile)
 
-            if (t+1) % 200 == 0:
-                agent.sess.run(agent.target_replace_op)
+            #if (t+1) % 200 == 0:
+            #    agent.sess.run(agent.target_replace_op)
 
             if t >= 500:
                 rospy.loginfo("Time out!!")
@@ -196,7 +196,7 @@ if __name__ == '__main__':
                 result.data = [score, 0.]
                 pub_result.publish(result)
                 #agent.updateTargetModel()
-                agent.sess.run(agent.target_replace_op)
+                #agent.sess.run(agent.target_replace_op)
                 scores.append(score)
                 episodes.append(e)
                 m, s = divmod(int(time.time() - start_time), 60)
