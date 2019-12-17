@@ -31,7 +31,7 @@ from src.environment_stage_1 import Env
 # from keras.models import Sequential, load_model
 # from keras.optimizers import RMSprop
 # from keras.layers import Dense, Dropout, Activation
-from src.tycdqn import ReinforceAgent
+from src.PDQN import ReinforceAgent
 import tensorflow as tf
 
 # EPISODES = 3000
