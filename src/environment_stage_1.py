@@ -20,11 +20,14 @@
 import rospy
 import numpy as np
 import math
+import random
 from math import pi
 from geometry_msgs.msg import Twist, Point, Pose
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
+from gazebo_msgs.msg import ModelState, ModelStates
 from std_srvs.srv import Empty
+from gazebo_msgs.srv import SetModelState
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
 
@@ -42,8 +45,13 @@ class Env():
         self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
         self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
+        self.set_pos_proxy = rospy.ServiceProxy('gazebo/set_model_state', SetModelState)
         self.respawn_goal = Respawn()
         self.colliding = False
+        self.spawn_pos = ModelState()
+        self.spawn_pos.pose.position.x = -2.0
+        self.spawn_pos.pose.position.y = -0.5
+        self.spawn_pos.model_name = "turtlebot3_burger"
 
     def getGoalDistace(self):
         goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
@@ -119,8 +127,7 @@ class Env():
             rospy.loginfo("Goal!!")
             reward = 750
             self.pub_cmd_vel.publish(Twist())
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
-            self.goal_distance = self.getGoalDistace()
+
             #self.get_goalbox = False
 
         return reward
@@ -152,12 +159,37 @@ class Env():
 
         return np.asarray(state), reward, done, goalbox
 
-    def reset(self):
+    def reset(self, win=False):
         rospy.wait_for_service('gazebo/reset_simulation')
         try:
             self.reset_proxy()
         except (rospy.ServiceException) as e:
             print("gazebo/reset_simulation service call failed")
+        if self.initGoal:
+            self.respawn_goal.respawnModel()
+        else:
+            rospy.wait_for_service('gazebo/set_model_state')
+            if win:
+                new_x = random.random()*5 - 2.5
+                new_y = random.random()*5 - 2.5
+                flag = self.respawn_goal.judge_goal_collision(new_x, new_y) 
+                while flag:
+                    #print('bot gene colli')
+                    new_x = random.random()*5 - 2.5
+                    new_y = random.random()*5 - 2.5
+                    flag = self.respawn_goal.judge_goal_collision(new_x, new_y)
+                self.spawn_pos.pose.position.x = new_x
+                self.spawn_pos.pose.position.y = new_y
+            
+            #STATE = ModelStates()
+            #STATE.pose = [self.spawn_pos.pose]
+            #STATE.twist = [self.spawn_pos.twist]
+            #STATE.name = ["turtlebot3_burger"]
+            try:
+                self.set_pos_proxy(self.spawn_pos)
+                print('set_model_state service')
+            except (rospy.ServiceException) as e:
+                print("gazebo/set_model_state service call failed")
 
         data = None
         while data is None:
@@ -167,8 +199,10 @@ class Env():
                 pass
 
         if self.initGoal:
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition()
+            self.goal_x, self.goal_y = self.respawn_goal.getPosition(self.spawn_pos)
             self.initGoal = False
+        else:
+            self.goal_x, self.goal_y = self.respawn_goal.getPosition(self.spawn_pos, win, delete=win)
 
         self.goal_distance = self.getGoalDistace()
         state, done = self.getState(data)
