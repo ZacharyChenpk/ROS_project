@@ -15,8 +15,6 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
-
 import rospy
 import os
 import json
@@ -33,6 +31,7 @@ from src.environment_stage_1 import Env
 # from keras.layers import Dense, Dropout, Activation
 from src.tycdqn import ReinforceAgent
 import tensorflow as tf
+import numpy as np
 
 # EPISODES = 3000
 
@@ -143,7 +142,7 @@ import tensorflow as tf
 #         self.model.fit(X_batch, Y_batch, batch_size=self.batch_size, epochs=1, verbose=0)
 
 if __name__ == '__main__':
-    rospy.init_node('turtlebot3_dqn_stage_1')
+    rospy.init_node('turtlebot3_dqn_test')
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
     result = Float32MultiArray()
@@ -154,70 +153,79 @@ if __name__ == '__main__':
 
     env = Env(action_size)
 
-    agent = ReinforceAgent(action_size, state_size)
+    saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_2/tbot-75000.meta")
     scores, episodes = [], []
     global_step = 0
     start_time = time.time()
     win_flag = False
 
-    for e in range(1, 1000):
-        done = False
-        state = env.reset(win_flag)
-        if win_flag:
-            win_flag = False
-        score = 0
-        for t in range(6000):
-            action = agent.choose_action(state)
+    with tf.Session() as sess:
+        saver.restore(sess, tf.train.latest_checkpoint('./model_2'))
+        new_s = tf.get_default_graph().get_tensor_by_name("s:0")
+        act_out = tf.get_collection('a_out')[0][0]
 
-            next_state, reward, done, goalbox = env.step(action)
+        for e in range(1, 50):
+            done = False
+            state = env.reset(win_flag)
+            if win_flag:
+                win_flag = False
+            score = 0
+            for t in range(6000):
+                state = state[np.newaxis, :]
+                action = sess.run(act_out, feed_dict={new_s: state})
 
-            #agent.appendMemory(state, action, reward, next_state, done)
-            agent.store_transition(state, action, reward, next_state)
+                next_state, reward, done, goalbox = env.step(action)
 
-            if global_step >= 640:
-                agent.learn()
+                score += reward
+                state = next_state
+                get_action.data = [action, score, reward]
+                pub_get_action.publish(get_action)
 
-            score += reward
-            state = next_state
-            get_action.data = [action, score, reward]
-            pub_get_action.publish(get_action)
+                # if e % 10 == 0:
+                #     agent.model.save(agent.dirPath + str(e) + '.h5')
+                #     with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
+                #         json.dump(param_dictionary, outfile)
 
-            if goalbox:
-                win_flag = True
+                #if (t+1) % 200 == 0:
+                #    agent.sess.run(agent.target_replace_op)
 
-            # if e % 10 == 0:
-            #     agent.model.save(agent.dirPath + str(e) + '.h5')
-            #     with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
-            #         json.dump(param_dictionary, outfile)
+                if goalbox:
+                    win_flag = True
 
-            #if (t+1) % 200 == 0:
-            #    agent.sess.run(agent.target_replace_op)
+                if t >= 500:
+                    rospy.loginfo("Time out!!")
+                    goalbox = True
 
-            if t >= 500:
-                rospy.loginfo("Time out!!")
-                goalbox = True
+                if goalbox:
+                    #result.data = [score, float(tf.reduce_max(agent.q_eval))]
+                    result.data = [score, 0.]
+                    pub_result.publish(result)
+                    #agent.updateTargetModel()
+                    #agent.sess.run(agent.target_replace_op)
+                    scores.append(score)
+                    episodes.append(e)
+                    m, s = divmod(int(time.time() - start_time), 60)
+                    h, m = divmod(m, 60)
 
-            if goalbox:
-                #result.data = [score, float(tf.reduce_max(agent.q_eval))]
-                result.data = [score, 0.]
-                pub_result.publish(result)
-                #agent.updateTargetModel()
-                #agent.sess.run(agent.target_replace_op)
-                scores.append(score)
-                episodes.append(e)
-                m, s = divmod(int(time.time() - start_time), 60)
-                h, m = divmod(m, 60)
+                    rospy.loginfo('Ep: %d score: %.2f time: %d:%02d:%02d',
+                                  e, score, h, m, s)
+                    #param_keys = ['epsilon']
+                    #param_values = [agent.epsilon]
+                    #param_dictionary = dict(zip(param_keys, param_values))
+                    break
 
-                rospy.loginfo('Ep: %d score: %.2f epsilon: %.2f time: %d:%02d:%02d',
-                              e, score, agent.epsilon, h, m, s)
-                param_keys = ['epsilon']
-                param_values = [agent.epsilon]
-                param_dictionary = dict(zip(param_keys, param_values))
-                break
+                global_step += 1
+                # if global_step % agent.target_update == 0:
+                #     rospy.loginfo("UPDATE TARGET NETWORK")
 
-            global_step += 1
-            # if global_step % agent.target_update == 0:
-            #     rospy.loginfo("UPDATE TARGET NETWORK")
+            # if agent.epsilon > agent.epsilon_min:
+            #     agent.epsilon *= agent.epsilon_decay
+#             Y_sample[0][actions] = next_q_value
+#             Y_batch = np.append(Y_batch, np.array([Y_sample[0]]), axis=0)
 
-        # if agent.epsilon > agent.epsilon_min:
-        #     agent.epsilon *= agent.epsilon_decay
+#             if dones:
+#                 X_batch = np.append(X_batch, np.array([next_states.copy()]), axis=0)
+#                 Y_batch = np.append(Y_batch, np.array([[rewards] * self.action_size]), axis=0)
+
+#         self.model.fit(X_batch, Y_batch, batch_size=self.batch_size, epochs=1, verbose=0)
+

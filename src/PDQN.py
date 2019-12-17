@@ -245,7 +245,7 @@ class ReinforceAgent():
             print('\ntarget_params_replaced\n')
 
         tree_idx, batch_memory, ISWeights = self.memory.sample(self.batch_size)
-
+        #print(ISWeights)
         # sample batch memory from all memory
         # if self.memory_counter > self.memory_size:
         #     sample_index = np.random.choice(self.memory_size, size=self.batch_size)
@@ -280,7 +280,7 @@ class ReinforceAgent():
 
         if self.learn_step_counter % 1000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_3/tbot", global_step=self.learn_step_counter)
 
     def plot_cost(self):
         import matplotlib.pyplot as plt
