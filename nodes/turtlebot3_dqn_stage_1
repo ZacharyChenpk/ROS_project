@@ -36,13 +36,13 @@ import tensorflow as tf
 
 # EPISODES = 3000
 
-WORLD_NAME = 'boxes_2'
+WORLD_NAME = 'boxes_1'
 ##############################################
 EPISODES = {'boxes': 1000,
             'boxes_1': 2000,
             'boxes_2': 2000,}
 STEP_CNT = {'boxes': 500,
-            'boxes_1': 500,
+            'boxes_1': 1000,
             'boxes_2': 1500}
 LEARN_START = {'boxes': 640,
                 'boxes_1': 640,
@@ -55,8 +55,8 @@ bot_learnstart = LEARN_START[WORLD_NAME]
 state_size = 362
 action_size = 10
 
-restoring = False
-restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000"
+restoring = True
+restore_path = "/home/zachary/catkin_ws/src/proj_api/src/model_5/tbot-290000"
 
 # class ReinforceAgent():
 #     def __init__(self, state_size, action_size):

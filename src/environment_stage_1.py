@@ -31,25 +31,37 @@ from gazebo_msgs.srv import SetModelState
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
 
-WORLD_NAME = 'boxes_2'
+WORLD_NAME = 'boxes_1'
 #######################################
 X_RANGE = {'boxes':5,
-            'boxes_1':False,
+            'boxes_1':3,
             'boxes_2':15}
 Y_RANGE = {'boxes':5,
-            'boxes_1':False,
+            'boxes_1':5,
             'boxes_2':15}
+X_CENTER = {'boxes':0.0,
+            'boxes_1':-1.5,
+            'boxes_2':0.0}
+Y_CENTER = {'boxes':0.0,
+            'boxes_1':-4,
+            'boxes_2':0.0}
 INIT_X = {'boxes':-2.0,
             'boxes_1':0.0,
             'boxes_2':0.0}
 INIT_Y = {'boxes':-0.5,
             'boxes_1':0.0,
             'boxes_2':0.0}
+COLLI = {'boxes':-10,
+            'boxes_1':-2,
+            'boxes_2':-10}
 #######################################
 bot_xrange = X_RANGE[WORLD_NAME]
 bot_yrange = Y_RANGE[WORLD_NAME]
+bot_xcenter = X_CENTER[WORLD_NAME]
+bot_ycenter = Y_CENTER[WORLD_NAME]
 BOT_INIT_X = INIT_X[WORLD_NAME]
 BOT_INIT_Y = INIT_Y[WORLD_NAME]
+colli_reward = COLLI[WORLD_NAME]
 
 class Env():
     def __init__(self, action_size):
@@ -138,7 +150,7 @@ class Env():
             if self.colliding == False:
                 self.colliding = True
                 rospy.loginfo("Collision!!")
-            reward = -10
+            reward = colli_reward
             #self.pub_cmd_vel.publish(Twist())
         else:
             self.colliding = False
@@ -190,16 +202,29 @@ class Env():
         else:
             rospy.wait_for_service('gazebo/set_model_state')
             if win:
-                new_x = random.random()*bot_xrange - bot_xrange/2
-                new_y = random.random()*bot_yrange - bot_yrange/2
-                flag = self.respawn_goal.judge_goal_collision(new_x, new_y) 
-                while flag:
-                    #print('bot gene colli')
-                    new_x = random.random()*bot_xrange - bot_xrange/2
-                    new_y = random.random()*bot_yrange - bot_yrange/2
-                    flag = self.respawn_goal.judge_goal_collision(new_x, new_y)
-                self.spawn_pos.pose.position.x = new_x
-                self.spawn_pos.pose.position.y = new_y
+                if WORLD_NAME != 'boxes_1':
+                    new_x = random.random()*bot_xrange - bot_xrange/2 + bot_xcenter
+                    new_y = random.random()*bot_yrange - bot_yrange/2 + bot_ycenter
+                    flag = self.respawn_goal.judge_goal_collision(new_x, new_y) 
+                    while flag:
+                        #print('bot gene colli')
+                        new_x = random.random()*bot_xrange - bot_xrange/2 + bot_xcenter
+                        new_y = random.random()*bot_yrange - bot_yrange/2 + bot_ycenter
+                        flag = self.respawn_goal.judge_goal_collision(new_x, new_y)
+                    self.spawn_pos.pose.position.x = new_x
+                    self.spawn_pos.pose.position.y = new_y
+                else:
+                    goal_x = -1.3
+                    goal_y = -4.3
+                    gene_dis = self.respawn_goal.get_gene_dis()
+                    flag = True
+                    while flag:
+                        theta = random.random() * 2 * math.pi
+                        new_x = goal_x + gene_dis * math.cos(theta)
+                        new_y = goal_y + gene_dis * math.sin(theta)
+                        flag = self.respawn_goal.judge_goal_collision(new_x, new_y)
+                    self.spawn_pos.pose.position.x = new_x
+                    self.spawn_pos.pose.position.y = new_y
             
             #STATE = ModelStates()
             #STATE.pose = [self.spawn_pos.pose]

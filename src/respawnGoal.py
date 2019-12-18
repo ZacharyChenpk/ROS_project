@@ -27,7 +27,7 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
 
-WORLD_NAME = 'boxes_2'  #boxes, boxes_1, boxes_2
+WORLD_NAME = 'boxes_1'  #boxes, boxes_1, boxes_2
 #######################################
 INIT_X = {'boxes':-2.0,
             'boxes_1':0.0,
@@ -36,13 +36,13 @@ INIT_Y = {'boxes':-0.5,
             'boxes_1':0.0,
             'boxes_2':0.0}
 START_DIS = {'boxes':0.25,
-            'boxes_1':False,
+            'boxes_1':2.4,
             'boxes_2':0.26}
 LI_EPOCH = {'boxes':40,
-            'boxes_1':False,
+            'boxes_1':40,
             'boxes_2':60}
 LI_RATE = {'boxes':0.1,
-            'boxes_1':False,
+            'boxes_1':0.09,
             'boxes_2':0.129}
 #######################################
 BOT_INIT_X = INIT_X[WORLD_NAME]
@@ -63,6 +63,8 @@ class Respawn():
         self.stage = rospy.get_param('/stage_number')
         self.goal_position = Pose()
         self.init_goal_x = BOT_INIT_X + BOT_START_DIS
+        if WORLD_NAME == 'boxes_1':
+            self.init_goal_x = BOT_INIT_X + 0.23
         self.init_goal_y = BOT_INIT_Y
         self.goal_position.position.x = self.init_goal_x
         self.goal_position.position.y = self.init_goal_y
@@ -133,16 +135,20 @@ class Respawn():
             self.success_time += 1
             print('success +1')
 
-        while position_check:
-            theta = random.random() * 2 * math.pi
-            goal_x = spawn_pos.pose.position.x + gene_dis * math.cos(theta)
-            goal_y = spawn_pos.pose.position.y + gene_dis * math.sin(theta)
+        if WORLD_NAME != 'boxes_1':
+            while position_check:
+                theta = random.random() * 2 * math.pi
+                goal_x = spawn_pos.pose.position.x + gene_dis * math.cos(theta)
+                goal_y = spawn_pos.pose.position.y + gene_dis * math.sin(theta)
 
-            self.goal_position.position.x = goal_x
-            self.goal_position.position.y = goal_y
-            position_check = self.judge_goal_collision(goal_x, goal_y)
+                self.goal_position.position.x = goal_x
+                self.goal_position.position.y = goal_y
+                position_check = self.judge_goal_collision(goal_x, goal_y)
 
-            print('position checking')
+                print('position checking')
+        elif position_check:
+            self.goal_position.position.x = -1.3
+            self.goal_position.position.y = -4.3
 
         # if self.stage != 4:
         #     while position_check:
