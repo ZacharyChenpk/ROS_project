@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+#################################################################################
+# Copyright 2018 ROBOTIS CO., LTD.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#################################################################################
+
+# Authors: Gilbert #
+
+import rospy
+import os
+import json
+import numpy as np
+import random
+import time
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from collections import deque
+from std_msgs.msg import Float32MultiArray
+from src.environment_stage_1 import Env
+# from keras.models import Sequential, load_model
+# from keras.optimizers import RMSprop
+# from keras.layers import Dense, Dropout, Activation
+from src.tycdqn import ReinforceAgent
+import tensorflow as tf
+
+if __name__ == '__main__':
+    rospy.init_node('turtlebot3_dqn_stage_1')
+    pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
+    pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
+    result = Float32MultiArray()
+    get_action = Float32MultiArray()
+
+    state_size = 362
+    action_size = 10
+
+    env = Env(action_size)
+
+    agent = ReinforceAgent(action_size, state_size)
+    #saver = tf.train.Saver()
+    agent.model_saver.restore(agent.sess, tf.train.latest_checkpoint('./model_3'))
+    scores, episodes = [], []
+    global_step = 0
+    start_time = time.time()
+    win_flag = False
+
+    for e in range(1, 1000):
+        done = False
+        state = env.reset(win_flag)
+        if win_flag:
+            win_flag = False
+        score = 0
+        for t in range(6000):
+            action = agent.choose_action(state)
+
+            next_state, reward, done, goalbox = env.step(action)
+
+            #agent.appendMemory(state, action, reward, next_state, done)
+            agent.store_transition(state, action, reward, next_state)
+
+            if global_step >= 2000:
+                agent.learn()
+
+            score += reward
+            state = next_state
+            get_action.data = [action, score, reward]
+            pub_get_action.publish(get_action)
+
+            if goalbox:
+                win_flag = True
+
+            # if e % 10 == 0:
+            #     agent.model.save(agent.dirPath + str(e) + '.h5')
+            #     with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
+            #         json.dump(param_dictionary, outfile)
+
+            #if (t+1) % 200 == 0:
+            #    agent.sess.run(agent.target_replace_op)
+
+            if t >= 500:
+                rospy.loginfo("Time out!!")
+                goalbox = True
+
+            if goalbox:
+                #result.data = [score, float(tf.reduce_max(agent.q_eval))]
+                result.data = [score, 0.]
+                pub_result.publish(result)
+                #agent.updateTargetModel()
+                #agent.sess.run(agent.target_replace_op)
+                scores.append(score)
+                episodes.append(e)
+                m, s = divmod(int(time.time() - start_time), 60)
+                h, m = divmod(m, 60)
+
+                rospy.loginfo('Ep: %d score: %.2f epsilon: %.2f time: %d:%02d:%02d',
+                              e, score, agent.epsilon, h, m, s)
+                param_keys = ['epsilon']
+                param_values = [agent.epsilon]
+                param_dictionary = dict(zip(param_keys, param_values))
+                break
+
+            global_step += 1
+            # if global_step % agent.target_update == 0:
+            #     rospy.loginfo("UPDATE TARGET NETWORK")
+
+        # if agent.epsilon > agent.epsilon_min:
+        #     agent.epsilon *= agent.epsilon_decay

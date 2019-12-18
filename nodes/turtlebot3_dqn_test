@@ -153,18 +153,19 @@ if __name__ == '__main__':
 
     env = Env(action_size)
 
-    saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_2/tbot-75000.meta")
+    #saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_4/tbot-336000.meta")
     scores, episodes = [], []
     global_step = 0
     start_time = time.time()
     win_flag = False
 
     with tf.Session() as sess:
-        saver.restore(sess, tf.train.latest_checkpoint('./model_2'))
+        saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_4/tbot-336000.meta")
+        saver.restore(sess, "/home/peanut/catkin_ws/src/proj_api/src/model_4/tbot-336000")
         new_s = tf.get_default_graph().get_tensor_by_name("s:0")
         act_out = tf.get_collection('a_out')[0][0]
 
-        for e in range(1, 50):
+        for e in range(1, 100):
             done = False
             state = env.reset(win_flag)
             if win_flag:

@@ -53,7 +53,7 @@ class ReinforceAgent():
 
         self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
-        self.model_saver = tf.train.Saver(max_to_keep=3)
+        self.model_saver = tf.train.Saver(max_to_keep=2)
 
     def _build_net(self):
         # ------------------ all inputs ------------------------
@@ -123,7 +123,7 @@ class ReinforceAgent():
     def learn(self):
         # check to replace target parameters
         if self.learn_step_counter % self.replace_target_iter == 0:
-            # self.sess.run(self.target_replace_op)
+            self.sess.run(self.target_replace_op)
             print('\ntarget_params_replaced\n')
 
         # sample batch memory from all memory
@@ -150,7 +150,7 @@ class ReinforceAgent():
 
         if self.learn_step_counter % 1000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_3/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot", global_step=self.learn_step_counter)
 
     def plot_cost(self):
         import matplotlib.pyplot as plt
