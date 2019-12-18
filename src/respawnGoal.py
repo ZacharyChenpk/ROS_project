@@ -27,9 +27,29 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
 
-WORLD_NAME = 'boxes'
-BOT_INIT_X = -2.0
-BOT_INIT_Y = -0.5
+WORLD_NAME = 'boxes_2'  #boxes, boxes_1, boxes_2
+#######################################
+INIT_X = {'boxes':-2.0,
+            'boxes_1':0.0,
+            'boxes_2':0.0}
+INIT_Y = {'boxes':-0.5,
+            'boxes_1':0.0,
+            'boxes_2':0.0}
+START_DIS = {'boxes':0.25,
+            'boxes_1':False,
+            'boxes_2':0.26}
+LI_EPOCH = {'boxes':40,
+            'boxes_1':False,
+            'boxes_2':60}
+LI_RATE = {'boxes':0.1,
+            'boxes_1':False,
+            'boxes_2':0.129}
+#######################################
+BOT_INIT_X = INIT_X[WORLD_NAME]
+BOT_INIT_Y = INIT_Y[WORLD_NAME]
+BOT_START_DIS = START_DIS[WORLD_NAME]
+BOT_LI_EPOCH = LI_EPOCH[WORLD_NAME]
+BOT_LI_RATE = LI_RATE[WORLD_NAME]
 
 class Respawn():
     def __init__(self):
@@ -42,15 +62,15 @@ class Respawn():
         self.model = self.f.read()
         self.stage = rospy.get_param('/stage_number')
         self.goal_position = Pose()
-        self.init_goal_x = BOT_INIT_X + 0.25
+        self.init_goal_x = BOT_INIT_X + BOT_START_DIS
         self.init_goal_y = BOT_INIT_Y
         self.goal_position.position.x = self.init_goal_x
         self.goal_position.position.y = self.init_goal_y
         self.modelName = 'goal'
-        self.obstacle_1 = 0.6, 0.6
-        self.obstacle_2 = 0.6, -0.6
-        self.obstacle_3 = -0.6, 0.6
-        self.obstacle_4 = -0.6, -0.6
+        # self.obstacle_1 = 0.6, 0.6
+        # self.obstacle_2 = 0.6, -0.6
+        # self.obstacle_3 = -0.6, 0.6
+        # self.obstacle_4 = -0.6, -0.6
         self.last_goal_x = self.init_goal_x
         self.last_goal_y = self.init_goal_y
         self.last_index = 0
@@ -66,11 +86,11 @@ class Respawn():
         print(self.obs_center)
 
     def get_gene_dis(self):
-        return 0.3 + min(33, self.success_time) * 0.1
+        return BOT_START_DIS + min(BOT_LI_EPOCH, self.success_time) * BOT_LI_RATE
 
     def judge_goal_collision(self, goal_x, goal_y):
         for i in range(self.obs_n):
-            if abs(goal_x - self.obs_center[i][0]) <= self.obs_size[i][0] + 0.2 and abs(goal_y - self.obs_center[i][1]) <= self.obs_size[i][1] + 0.2:
+            if abs(goal_x - self.obs_center[i][0]) <= self.obs_size[i][0]/2 + 0.2 and abs(goal_y - self.obs_center[i][1]) <= self.obs_size[i][1]/2 + 0.2:
                 print('colli '+str(i))
                 return True
 

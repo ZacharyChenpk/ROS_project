@@ -31,6 +31,26 @@ from gazebo_msgs.srv import SetModelState
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
 
+WORLD_NAME = 'boxes_2'
+#######################################
+X_RANGE = {'boxes':5,
+            'boxes_1':False,
+            'boxes_2':15}
+Y_RANGE = {'boxes':5,
+            'boxes_1':False,
+            'boxes_2':15}
+INIT_X = {'boxes':-2.0,
+            'boxes_1':0.0,
+            'boxes_2':0.0}
+INIT_Y = {'boxes':-0.5,
+            'boxes_1':0.0,
+            'boxes_2':0.0}
+#######################################
+bot_xrange = X_RANGE[WORLD_NAME]
+bot_yrange = Y_RANGE[WORLD_NAME]
+BOT_INIT_X = INIT_X[WORLD_NAME]
+BOT_INIT_Y = INIT_Y[WORLD_NAME]
+
 class Env():
     def __init__(self, action_size):
         self.goal_x = 0
@@ -49,8 +69,8 @@ class Env():
         self.respawn_goal = Respawn()
         self.colliding = False
         self.spawn_pos = ModelState()
-        self.spawn_pos.pose.position.x = -2.0
-        self.spawn_pos.pose.position.y = -0.5
+        self.spawn_pos.pose.position.x = BOT_INIT_X
+        self.spawn_pos.pose.position.y = BOT_INIT_Y
         self.spawn_pos.model_name = "turtlebot3_burger"
 
     def getGoalDistace(self):
@@ -170,13 +190,13 @@ class Env():
         else:
             rospy.wait_for_service('gazebo/set_model_state')
             if win:
-                new_x = random.random()*5 - 2.5
-                new_y = random.random()*5 - 2.5
+                new_x = random.random()*bot_xrange - bot_xrange/2
+                new_y = random.random()*bot_yrange - bot_yrange/2
                 flag = self.respawn_goal.judge_goal_collision(new_x, new_y) 
                 while flag:
                     #print('bot gene colli')
-                    new_x = random.random()*5 - 2.5
-                    new_y = random.random()*5 - 2.5
+                    new_x = random.random()*bot_xrange - bot_xrange/2
+                    new_y = random.random()*bot_yrange - bot_yrange/2
                     flag = self.respawn_goal.judge_goal_collision(new_x, new_y)
                 self.spawn_pos.pose.position.x = new_x
                 self.spawn_pos.pose.position.y = new_y

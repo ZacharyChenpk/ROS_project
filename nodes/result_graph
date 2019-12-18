@@ -31,10 +31,11 @@ class Window(QMainWindow):
         self.graph_sub = rospy.Subscriber('result', Float32MultiArray, self.data)
         self.ep = []
         self.data = []
-        self.rewards = []
         self.x = []
         self.count = 1
         self.size_ep = 0
+        self.win_record = []
+        self.rate_record = []
         load_data = False
 
         if load_data:
@@ -46,13 +47,18 @@ class Window(QMainWindow):
         self.data.append(data.data[0])
         self.ep.append(self.size_ep + self.count)
         self.count += 1
-        self.rewards.append(data.data[1])
-
+        tmp = 0.
+        if data.data[1]:
+            print('win_flag received')
+            print(self.win_record)
+            tmp = 1.
+        self.win_record.append(tmp)
+        self.rate_record.append(sum(self.win_record[max(0, len(self.win_record)-100):])/min(len(self.win_record), 100))
 
     def plot(self):
-        self.qValuePlt = pg.PlotWidget(self, title="Average max Q-value")
-        self.qValuePlt.move(0, 320)
-        self.qValuePlt.resize(600, 300)
+        self.accPlt = pg.PlotWidget(self, title="Goal Rate in Recent 100 epoches")
+        self.accPlt.move(0, 320)
+        self.accPlt.resize(600, 300)
         self.timer1 = pg.QtCore.QTimer()
         self.timer1.timeout.connect(self.update)
         self.timer1.start(200)
@@ -69,10 +75,10 @@ class Window(QMainWindow):
 
     def update(self):
         self.rewardsPlt.showGrid(x=True, y=True)
-        self.qValuePlt.showGrid(x=True, y=True)
+        self.accPlt.showGrid(x=True, y=True)
         self.rewardsPlt.plot(self.ep, self.data, pen=(255, 0, 0))
-        self.save_data([self.ep, self.data])
-        self.qValuePlt.plot(self.ep, self.rewards, pen=(0, 255, 0))
+        self.save_data([self.ep, self.data, self.win_record, self.rate_record])
+        self.accPlt.plot(self.ep, self.rate_record, pen=(255, 0, 0))
 
     def load_data(self):
         try:
