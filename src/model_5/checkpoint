@@ -1,0 +1,3 @@
+model_checkpoint_path: "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000"
+all_model_checkpoint_paths: "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-289000"
+all_model_checkpoint_paths: "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000"

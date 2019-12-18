@@ -55,6 +55,9 @@ bot_learnstart = LEARN_START[WORLD_NAME]
 state_size = 362
 action_size = 10
 
+restoring = False
+restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000"
+
 # class ReinforceAgent():
 #     def __init__(self, state_size, action_size):
 #         self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
@@ -170,7 +173,13 @@ if __name__ == '__main__':
 
     env = Env(action_size)
 
-    agent = ReinforceAgent(action_size, state_size)
+    if not restoring:
+        agent = ReinforceAgent(action_size, state_size)
+    else:
+        agent = ReinforceAgent(action_size, state_size, e_greedy_increment=None)
+        #saver = tf.train.Saver()
+        agent.model_saver.restore(agent.sess, restore_path)
+
     scores, episodes = [], []
     global_step = 0
     start_time = time.time()

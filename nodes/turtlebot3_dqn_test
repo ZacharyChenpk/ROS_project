@@ -160,8 +160,8 @@ if __name__ == '__main__':
     win_flag = False
 
     with tf.Session() as sess:
-        saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_4/tbot-336000.meta")
-        saver.restore(sess, "/home/peanut/catkin_ws/src/proj_api/src/model_4/tbot-336000")
+        saver = tf.train.import_meta_graph("/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000.meta")
+        saver.restore(sess, "/home/peanut/catkin_ws/src/proj_api/src/model_5/tbot-290000")
         new_s = tf.get_default_graph().get_tensor_by_name("s:0")
         act_out = tf.get_collection('a_out')[0][0]
 

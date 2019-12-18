@@ -52,7 +52,7 @@ class ReinforceAgent():
             tf.summary.FileWriter("logs/", self.sess.graph)
 
         self.sess.run(tf.global_variables_initializer())
-        self.cost_his = []
+        #self.cost_his = []
         self.model_saver = tf.train.Saver(max_to_keep=2)
 
     def _build_net(self):
@@ -142,7 +142,7 @@ class ReinforceAgent():
                 self.s_: batch_memory[:, -self.n_features:],
             })
 
-        self.cost_his.append(cost)
+        #self.cost_his.append(cost)
 
         # increasing epsilon
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
@@ -150,14 +150,14 @@ class ReinforceAgent():
 
         if self.learn_step_counter % 1000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/zachary/catkin_ws/src/proj_api/src/2_model_5/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_6/tbot", global_step=self.learn_step_counter)
 
-    def plot_cost(self):
-        import matplotlib.pyplot as plt
-        plt.plot(np.arange(len(self.cost_his)), self.cost_his)
-        plt.ylabel('Cost')
-        plt.xlabel('training steps')
-        plt.show()
+    #def plot_cost(self):
+    #    import matplotlib.pyplot as plt
+    #    plt.plot(np.arange(len(self.cost_his)), self.cost_his)
+    #    plt.ylabel('Cost')
+    #    plt.xlabel('training steps')
+    #    plt.show()
 
 if __name__ == '__main__':
     DQN = DeepQNetwork(3,4, output_graph=True)
