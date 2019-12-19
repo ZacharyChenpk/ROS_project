@@ -31,7 +31,7 @@ from gazebo_msgs.srv import SetModelState
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
 
-WORLD_NAME = 'boxes_1'
+WORLD_NAME = 'boxes_2'
 #######################################
 X_RANGE = {'boxes':5,
             'boxes_1':3,

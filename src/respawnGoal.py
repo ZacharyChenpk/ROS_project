@@ -27,7 +27,7 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
 
-WORLD_NAME = 'boxes_1'  #boxes, boxes_1, boxes_2
+WORLD_NAME = 'boxes_2'  #boxes, boxes_1, boxes_2
 #######################################
 INIT_X = {'boxes':-2.0,
             'boxes_1':0.0,

@@ -36,7 +36,7 @@ import tensorflow as tf
 
 # EPISODES = 3000
 
-WORLD_NAME = 'boxes_1'
+WORLD_NAME = 'boxes_2'
 ##############################################
 EPISODES = {'boxes': 1000,
             'boxes_1': 2000,
@@ -56,7 +56,7 @@ state_size = 362
 action_size = 10
 
 restoring = True
-restore_path = "/home/zachary/catkin_ws/src/proj_api/src/model_5/tbot-290000"
+restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_7/tbot-109000"
 
 # class ReinforceAgent():
 #     def __init__(self, state_size, action_size):
