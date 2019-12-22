@@ -1,0 +1,5 @@
+<launch>
+  <arg name="stage" default="1"/>
+  <param name="stage_number"  value="$(arg stage)"/>
+  <node pkg="proj_api" type="turtlebot_stage_2" name="turtlebot_stage_2" output="screen" />
+</launch>
