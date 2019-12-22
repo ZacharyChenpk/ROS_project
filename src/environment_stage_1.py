@@ -15,7 +15,8 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Mainly based on source code in Turtlebot3_Machine_Learning #
+# Authors: Gilbert, Chen Zhibin(1700012764) #
 
 import rospy
 import numpy as np
@@ -31,29 +32,36 @@ from gazebo_msgs.srv import SetModelState
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
 
-WORLD_NAME = 'boxes_2'
+WORLD_NAME = 'boxes_3'
 #######################################
 X_RANGE = {'boxes':5,
             'boxes_1':3,
-            'boxes_2':15}
+            'boxes_2':15,
+            'boxes_3':10}
 Y_RANGE = {'boxes':5,
             'boxes_1':5,
-            'boxes_2':15}
+            'boxes_2':15,
+            'boxes_3':10}
 X_CENTER = {'boxes':0.0,
             'boxes_1':-1.5,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 Y_CENTER = {'boxes':0.0,
             'boxes_1':-4,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 INIT_X = {'boxes':-2.0,
             'boxes_1':0.0,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 INIT_Y = {'boxes':-0.5,
             'boxes_1':0.0,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 COLLI = {'boxes':-10,
-            'boxes_1':-2,
-            'boxes_2':-10}
+            'boxes_1':-5,
+            'boxes_2':-10,
+            'boxes_3':-5}
 #######################################
 bot_xrange = X_RANGE[WORLD_NAME]
 bot_yrange = Y_RANGE[WORLD_NAME]
@@ -72,7 +80,7 @@ class Env():
         self.initGoal = True
         self.get_goalbox = False
         self.position = Pose()
-        self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
+        self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         self.sub_odom = rospy.Subscriber('odom', Odometry, self.getOdometry)
         self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)

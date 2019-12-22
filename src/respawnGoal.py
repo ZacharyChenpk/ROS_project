@@ -1,21 +1,7 @@
 #!/usr/bin/env python
-#################################################################################
-# Copyright 2018 ROBOTIS CO., LTD.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#################################################################################
 
-# Authors: Gilbert #
+# We have read the source code in Turtlebot3_Machine_Learning for reference #
+# Authors: Chen Zhibin(1700012764) #
 
 import rospy
 import random
@@ -27,23 +13,28 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
 
-WORLD_NAME = 'boxes_2'  #boxes, boxes_1, boxes_2
+WORLD_NAME = 'boxes_3'  #boxes, boxes_1, boxes_2
 #######################################
 INIT_X = {'boxes':-2.0,
             'boxes_1':0.0,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 INIT_Y = {'boxes':-0.5,
             'boxes_1':0.0,
-            'boxes_2':0.0}
+            'boxes_2':0.0,
+            'boxes_3':0.0}
 START_DIS = {'boxes':0.25,
             'boxes_1':2.4,
-            'boxes_2':0.26}
+            'boxes_2':0.26,
+            'boxes_3':1}
 LI_EPOCH = {'boxes':40,
             'boxes_1':40,
-            'boxes_2':60}
+            'boxes_2':60,
+            'boxes_3':90}
 LI_RATE = {'boxes':0.1,
             'boxes_1':0.09,
-            'boxes_2':0.129}
+            'boxes_2':0.129,
+            'boxes_3':0.1}
 #######################################
 BOT_INIT_X = INIT_X[WORLD_NAME]
 BOT_INIT_Y = INIT_Y[WORLD_NAME]
@@ -60,25 +51,18 @@ class Respawn():
                                                 'proj_api/goal_box/model.sdf')
         self.f = open(self.modelPath, 'r')
         self.model = self.f.read()
-        self.stage = rospy.get_param('/stage_number')
         self.goal_position = Pose()
         self.init_goal_x = BOT_INIT_X + BOT_START_DIS
-        if WORLD_NAME == 'boxes_1':
+        if WORLD_NAME == 'boxes_1' or WORLD_NAME == 'boxes_3':
             self.init_goal_x = BOT_INIT_X + 0.23
         self.init_goal_y = BOT_INIT_Y
         self.goal_position.position.x = self.init_goal_x
         self.goal_position.position.y = self.init_goal_y
         self.modelName = 'goal'
-        # self.obstacle_1 = 0.6, 0.6
-        # self.obstacle_2 = 0.6, -0.6
-        # self.obstacle_3 = -0.6, 0.6
-        # self.obstacle_4 = -0.6, -0.6
         self.last_goal_x = self.init_goal_x
         self.last_goal_y = self.init_goal_y
-        self.last_index = 0
         self.sub_model = rospy.Subscriber('gazebo/model_states', ModelStates, self.checkModel)
         self.check_model = False
-        self.index = 0
         self.obsdata = np.loadtxt(self.obsPath)
         self.obs_n = self.obsdata.shape[0]/2
         self.obs_size = self.obsdata[0:self.obs_n]
@@ -141,54 +125,36 @@ class Respawn():
                 goal_x = spawn_pos.pose.position.x + gene_dis * math.cos(theta)
                 goal_y = spawn_pos.pose.position.y + gene_dis * math.sin(theta)
 
+                if WORLD_NAME == 'boxes_3':
+                    if spawn_pos.pose.position.x**2 + spawn_pos.pose.position.y**2 <= gene_dis**2 and random.random() > 0.5:
+                        goal_x = random.random() - 0.5
+                        goal_y = random.random() - 0.5
+                    else:
+                        theta = random.random() * 2 * math.pi
+                        goal_x2 = spawn_pos.pose.position.x + gene_dis * math.cos(theta)
+                        goal_y2 = spawn_pos.pose.position.y + gene_dis * math.sin(theta)
+                        if goal_x**2+goal_y**2 > goal_x2**2 + goal_y2**2:
+                            goal_x = goal_x2
+                            goal_y = goal_y2
+
+                        theta = random.random() * 2 * math.pi
+                        goal_x2 = spawn_pos.pose.position.x + gene_dis * math.cos(theta)
+                        goal_y2 = spawn_pos.pose.position.y + gene_dis * math.sin(theta)
+                        if goal_x**2+goal_y**2 > goal_x2**2 + goal_y2**2:
+                            goal_x = goal_x2
+                            goal_y = goal_y2
+
                 self.goal_position.position.x = goal_x
                 self.goal_position.position.y = goal_y
+
                 position_check = self.judge_goal_collision(goal_x, goal_y)
+                if WORLD_NAME == 'boxes_3':
+                    position_check = position_check or (abs(goal_x)>8 or abs(goal_y)>8)
 
                 print('position checking')
         elif position_check:
             self.goal_position.position.x = -1.3
             self.goal_position.position.y = -4.3
-
-        # if self.stage != 4:
-        #     while position_check:
-        #         goal_x = random.randrange(-12, 13) / 10.0
-        #         goal_y = random.randrange(-12, 13) / 10.0
-        #         if abs(goal_x - self.obstacle_1[0]) <= 0.4 and abs(goal_y - self.obstacle_1[1]) <= 0.4:
-        #             position_check = True
-        #         elif abs(goal_x - self.obstacle_2[0]) <= 0.4 and abs(goal_y - self.obstacle_2[1]) <= 0.4:
-        #             position_check = True
-        #         elif abs(goal_x - self.obstacle_3[0]) <= 0.4 and abs(goal_y - self.obstacle_3[1]) <= 0.4:
-        #             position_check = True
-        #         elif abs(goal_x - self.obstacle_4[0]) <= 0.4 and abs(goal_y - self.obstacle_4[1]) <= 0.4:
-        #             position_check = True
-        #         elif abs(goal_x - 0.0) <= 0.4 and abs(goal_y - 0.0) <= 0.4:
-        #             position_check = True
-        #         else:
-        #             position_check = False
-
-        #         if abs(goal_x - self.last_goal_x) < 1 and abs(goal_y - self.last_goal_y) < 1:
-        #             position_check = True
-
-        #         self.goal_position.position.x = goal_x
-        #         self.goal_position.position.y = goal_y
-
-        # else:
-        #     while position_check:
-        #         goal_x_list = [0.6, 1.9, 0.5, 0.2, -0.8, -1, -1.9, 0.5, 2, 0.5, 0, -0.1, -2]
-        #         goal_y_list = [0, -0.5, -1.9, 1.5, -0.9, 1, 1.1, -1.5, 1.5, 1.8, -1, 1.6, -0.8]
-
-        #         self.index = random.randrange(0, 13)
-        #         print(self.index, self.last_index)
-        #         if self.last_index == self.index:
-        #             position_check = True
-        #         else:
-        #             self.last_index = self.index
-        #             position_check = False
-
-        #         self.goal_position.position.x = goal_x_list[self.index]
-        #         self.goal_position.position.y = goal_y_list[self.index]
-
         
         time.sleep(0.5)
         if delete:
