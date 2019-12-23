@@ -143,7 +143,7 @@ class ReinforceAgent:
             output_graph=False,
             prioritized=True,
             sess=None,
-            timesteps=10,
+            timesteps=5,
     ):
         self.n_actions = n_actions
         self.n_features = n_features

@@ -25,11 +25,11 @@ EPISODES = {'boxes': 1000,
 STEP_CNT = {'boxes': 500,
             'boxes_1': 1000,
             'boxes_2': 1500,
-            'boxes_3': 1500}
+            'boxes_3': 750}
 LEARN_START = {'boxes': 640,
                 'boxes_1': 640,
                 'boxes_2': 1280,
-                'boxes_3': 1280}
+                'boxes_3': 640}
 ##############################################
 bot_episodes = EPISODES[WORLD_NAME]
 bot_step = STEP_CNT[WORLD_NAME]
@@ -68,7 +68,7 @@ if __name__ == '__main__':
             win_flag = False
         score = 0
         #### for LSTM ######
-        timesteps=10
+        timesteps=5
         s_his=np.array(state)
         for i in range(timesteps-1):
             s_his=np.vstack((s_his,state))
