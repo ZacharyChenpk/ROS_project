@@ -13,7 +13,7 @@ import time
 from collections import deque
 from std_msgs.msg import Float32MultiArray
 from src.environment_stage_1 import Env
-from src.tycdqn import ReinforceAgent
+from src.PDQN import ReinforceAgent
 import tensorflow as tf
 
 WORLD_NAME = 'boxes_3'
@@ -38,8 +38,8 @@ bot_learnstart = LEARN_START[WORLD_NAME]
 state_size = 362
 action_size = 10
 
-restoring = True
-restore_path = "/home/zachary/catkin_ws/src/proj_api/src/model_7/tbot-109000"
+restoring = False
+restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_8/tbot-374000"
 
 if __name__ == '__main__':
     rospy.init_node('turtlebot3_dqn_stage_1')

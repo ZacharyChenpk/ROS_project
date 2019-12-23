@@ -4,7 +4,6 @@ import tensorflow as tf
 np.random.seed(1)
 tf.set_random_seed(1)
 
-# Deep Q Network off-policy
 class ReinforceAgent():
     def __init__(
             self,
@@ -14,7 +13,7 @@ class ReinforceAgent():
             reward_decay=0.99,
             e_greedy=0.95,
             replace_target_iter=400,
-            memory_size=100000,
+            memory_size=300000,
             batch_size=64,
             e_greedy_increment=0.00001,
             output_graph=False,
@@ -148,9 +147,9 @@ class ReinforceAgent():
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
         self.learn_step_counter += 1
 
-        if self.learn_step_counter % 1000 == 0:
+        if self.learn_step_counter % 2000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/zachary/catkin_ws/src/proj_api/src/model_8/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_11/tbot", global_step=self.learn_step_counter)
 
     #def plot_cost(self):
     #    import matplotlib.pyplot as plt

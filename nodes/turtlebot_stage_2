@@ -38,8 +38,8 @@ bot_learnstart = LEARN_START[WORLD_NAME]
 state_size = 362
 action_size = 10
 
-restoring = False
-restore_path = "/home/zachary/catkin_ws/src/proj_api/src/model_7/tbot-109000"
+restoring = True
+restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_9/tbot-251000"
 
 if __name__ == '__main__':
     rospy.init_node('turtlebot_stage_2')
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     if not restoring:
         agent = ReinforceAgent(action_size, state_size)
     else:
-        agent = ReinforceAgent(action_size, state_size, e_greedy_increment=None)
+        agent = ReinforceAgent(action_size, state_size, e_greedy_increment=0.0001)
         agent.model_saver.restore(agent.sess, restore_path)
 
     scores, episodes = [], []
