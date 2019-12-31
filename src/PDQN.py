@@ -292,4 +292,4 @@ class ReinforceAgent:
         self.learn_step_counter += 1
         if self.learn_step_counter % 1000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_12/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/zachary/catkin_ws/src/proj_api/src/3_model_16/tbot", global_step=self.learn_step_counter)

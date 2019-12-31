@@ -72,7 +72,7 @@ BOT_INIT_Y = INIT_Y[WORLD_NAME]
 colli_reward = COLLI[WORLD_NAME]
 
 class Env():
-    def __init__(self, action_size):
+    def __init__(self, action_size, prev_succ=0):
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
@@ -86,7 +86,7 @@ class Env():
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
         self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.set_pos_proxy = rospy.ServiceProxy('gazebo/set_model_state', SetModelState)
-        self.respawn_goal = Respawn()
+        self.respawn_goal = Respawn(prev_succ=prev_succ)
         self.colliding = False
         self.spawn_pos = ModelState()
         self.spawn_pos.pose.position.x = BOT_INIT_X
@@ -151,7 +151,7 @@ class Env():
             yaw_reward.append(tr)
 
         distance_rate = 2 ** (current_distance / self.goal_distance)
-        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate)-0.5
+        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate)-1
         #reward = 3 - distance_rate
 
         if done:
@@ -171,6 +171,9 @@ class Env():
             #self.get_goalbox = False
 
         return reward
+
+    def stopHere(self):
+        self.pub_cmd_vel.publish(Twist())
 
     def step(self, action):
         max_angular_vel = 1.5

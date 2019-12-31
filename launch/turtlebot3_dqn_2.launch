@@ -1,0 +1,4 @@
+<launch>
+
+  <node pkg="proj_api" type="turtlebot_dqn_2" name="turtlebot_dqn_2" output="screen" />
+</launch>

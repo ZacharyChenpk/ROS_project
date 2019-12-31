@@ -149,7 +149,7 @@ class ReinforceAgent():
 
         if self.learn_step_counter % 2000 == 0:
             print("model saved")
-            save_path = self.model_saver.save(self.sess, "/home/peanut/catkin_ws/src/proj_api/src/model_11/tbot", global_step=self.learn_step_counter)
+            save_path = self.model_saver.save(self.sess, "/home/zachary/catkin_ws/src/proj_api/src/nouse/tbot", global_step=self.learn_step_counter)
 
     #def plot_cost(self):
     #    import matplotlib.pyplot as plt

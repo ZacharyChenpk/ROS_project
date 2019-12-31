@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+
+# Authors: Chen Zhibin, Feng Yicheng #
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+import rospy
+import json
+import numpy as np
+import random
+import time
+from collections import deque
+from std_msgs.msg import Float32MultiArray
+from src.environment import Env
+from src.PDQN_LSTM import ReinforceAgent
+import tensorflow as tf
+
+WORLD_NAME = 'boxes_3'
+##############################################
+EPISODES = {'boxes': 1000,
+            'boxes_1': 2000,
+            'boxes_2': 2000,
+            'boxes_3': 3000}
+STEP_CNT = {'boxes': 500,
+            'boxes_1': 1000,
+            'boxes_2': 1500,
+            'boxes_3': 750}
+LEARN_START = {'boxes': 640,
+                'boxes_1': 640,
+                'boxes_2': 1280,
+                'boxes_3': 640}
+##############################################
+bot_episodes = EPISODES[WORLD_NAME]
+bot_step = STEP_CNT[WORLD_NAME]
+bot_learnstart = LEARN_START[WORLD_NAME]
+
+state_size = 362
+action_size = 10
+
+restoring = True
+restore_path = "/home/peanut/catkin_ws/src/proj_api/src/model_9/tbot-251000"
+
+if __name__ == '__main__':
+    rospy.init_node('turtlebot_dqn_2')
+    result = Float32MultiArray()
+    get_action = Float32MultiArray()
+    pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=10)
+    pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=10)
+
+    env = Env(action_size)
+
+    if not restoring:
+        agent = ReinforceAgent(action_size, state_size)
+    else:
+        agent = ReinforceAgent(action_size, state_size, e_greedy_increment=0.0001)
+        agent.model_saver.restore(agent.sess, restore_path)
+
+    scores, episodes = [], []
+    global_step = 0
+    start_time = time.time()
+    win_flag = False
+
+    for e in range(1, bot_episodes):
+        done = False
+        state = env.reset(win_flag)
+        if win_flag:
+            win_flag = False
+        score = 0
+        #### for LSTM ######
+        timesteps=5
+        s_his=np.array(state)
+        for i in range(timesteps-1):
+            s_his=np.vstack((s_his,state))
+        ####################
+        for t in range(6000):
+            action = agent.choose_action(s_his)
+
+            next_state, reward, done, finished = env.step(action)
+
+            agent.store_transition(s_his, action, reward, next_state)
+
+            if global_step >= bot_learnstart:
+                agent.learn()
+
+            score += reward
+            #state = next_state
+            #### for LSTM ######
+            s_his=np.vstack((s_his[1:,:],next_state))
+            ####################
+            get_action.data = [action, score, reward]
+            pub_get_action.publish(get_action)
+
+            if finished:
+                win_flag = True
+
+            if t >= bot_step:
+                rospy.loginfo("Time out!!")
+                finished = True
+
+            if finished:
+                result.data = [score, win_flag]
+                pub_result.publish(result)
+                scores.append(score)
+                episodes.append(e)
+                m, s = divmod(int(time.time() - start_time), 60)
+                h, m = divmod(m, 60)
+
+                rospy.loginfo('Ep: %d score: %.2f epsilon: %.2f time: %d:%02d:%02d',
+                              e, score, agent.epsilon, h, m, s)
+                param_keys = ['epsilon']
+                param_values = [agent.epsilon]
+                param_dictionary = dict(zip(param_keys, param_values))
+                break
+
+            global_step += 1

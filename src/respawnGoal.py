@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # We have read the source code in Turtlebot3_Machine_Learning for reference #
-# Authors: Chen Zhibin(1700012764) #
+# Authors: Chen Zhibin, Gilbert #
 
 import rospy
 import random
@@ -43,7 +43,7 @@ BOT_LI_EPOCH = LI_EPOCH[WORLD_NAME]
 BOT_LI_RATE = LI_RATE[WORLD_NAME]
 
 class Respawn():
-    def __init__(self):
+    def __init__(self, prev_succ=0):
         self.modelPath = os.path.dirname(os.path.realpath(__file__))
         self.obsPath = self.modelPath.replace('proj_api/src',
                                             'proj_api/worlds/'+WORLD_NAME+'.obs')
@@ -67,7 +67,7 @@ class Respawn():
         self.obs_n = self.obsdata.shape[0]/2
         self.obs_size = self.obsdata[0:self.obs_n]
         self.obs_center = self.obsdata[self.obs_n:]
-        self.success_time = 0
+        self.success_time = prev_succ
         print(self.obs_size)
         print(self.obs_center)
 
